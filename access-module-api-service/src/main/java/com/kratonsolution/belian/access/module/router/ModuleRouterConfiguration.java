@@ -23,9 +23,4 @@ public class ModuleRouterConfiguration {
                 .andRoute(GET("/api/v2/access-module/paging/{page}/{size}"), moduleHandler::filter)
                 .andRoute(POST("/api/v2/access-module/create"), moduleHandler::create);
     }
-
-    @Bean("reactiveTransactionManager")
-    public ReactiveTransactionManager transactionManager(ConnectionFactory connectionFactory) {
-        return new R2dbcTransactionManager(connectionFactory);
-    }
 }

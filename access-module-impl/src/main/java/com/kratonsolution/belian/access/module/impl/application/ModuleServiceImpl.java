@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Flux;
@@ -23,12 +24,12 @@ import reactor.core.publisher.Mono;
  */
 @Slf4j
 @Service
-@Transactional(rollbackFor = Exception.class)
 public class ModuleServiceImpl implements ModuleService {
     
     @Autowired
     private ModuleRepository repo;
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public Mono<ModuleData> create(Mono<ModuleCreateCommand> monoCommand) {
 
         return monoCommand.flatMap(command -> {
