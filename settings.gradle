@@ -1,0 +1,5 @@
+rootProject.name = 'com.kratonsolution.component.accessmodule'
+
+include 'access-module-api'
+include 'access-module-impl'
+include 'access-module-api-service'
