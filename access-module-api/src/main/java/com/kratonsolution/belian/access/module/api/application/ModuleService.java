@@ -22,10 +22,14 @@ public interface ModuleService {
     Mono<ModuleData> getByCode(@NonNull Mono<String> code);
     
     Flux<ModuleData> getAll();
-    
-    Flux<ModuleData> filter(@NonNull Mono<ModuleFilter> filter);
+
+    Flux<ModuleData> getAll(int offset, int limit);
+
+    Flux<ModuleData> getAll(@NonNull String key);
+
+    Flux<ModuleData> getAll(@NonNull Mono<ModuleFilter> filter);
 
     Mono<Long> count();
 
-    Mono<Long> count(@NonNull Mono<ModuleFilter> filter);
+    Mono<Long> count(@NonNull Mono<String> filter);
 }

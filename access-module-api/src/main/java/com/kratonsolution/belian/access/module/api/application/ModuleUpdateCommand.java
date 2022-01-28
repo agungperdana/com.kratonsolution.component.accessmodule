@@ -26,7 +26,7 @@ public class ModuleUpdateCommand implements Serializable {
     private String name;
     
     @NonNull
-    private ModuleGroup group;
+    private String group;
     
     private String note;
     

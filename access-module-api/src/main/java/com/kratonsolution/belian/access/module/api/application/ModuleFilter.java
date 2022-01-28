@@ -2,9 +2,7 @@ package com.kratonsolution.belian.access.module.api.application;
 
 import java.io.Serializable;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * @author Agung Dodi Perdana
@@ -13,15 +11,16 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@Builder
 public class ModuleFilter implements Serializable {
  
     private static final long serialVersionUID = 7878294784897732945L;
 
     private String key;
     
-    private Integer page;
+    private int offset;
     
-    private Integer size;
+    private int limit;
     
     public String toLikeQuery() {
     	

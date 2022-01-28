@@ -2,8 +2,6 @@ package com.kratonsolution.belian.access.module.api.application;
 
 import java.io.Serializable;
 
-import com.kratonsolution.belian.access.module.api.ModuleGroup;
-
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -26,9 +24,9 @@ public class ModuleCreateCommand implements Serializable {
     private String name;
     
     private String note;
-    
+
     @NonNull
-    private ModuleGroup group;
+    private String moduleGroup;
     
     private boolean enabled;
     
