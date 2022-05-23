@@ -1,9 +1,13 @@
 # Ignore Gradle project-specific cache directory
 .gradle
+.idea
 
 # Ignore Gradle build output directory
 build
 access-module-api/build
+access-module-api/bin
 access-module-impl/build
+access-module-impl/bin
 access-module-api-service/build
-.idea
+access-module-api-service/bin
+
