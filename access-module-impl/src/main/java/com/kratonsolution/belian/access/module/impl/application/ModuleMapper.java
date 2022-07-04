@@ -1,12 +1,14 @@
 package com.kratonsolution.belian.access.module.impl.application;
 
-import com.kratonsolution.belian.access.module.api.ModuleData;
-import com.kratonsolution.belian.access.module.impl.model.Module;
-import lombok.NonNull;
+import java.util.List;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-import java.util.List;
+import com.kratonsolution.belian.access.module.api.ModuleData;
+import com.kratonsolution.belian.access.module.impl.entity.R2DBCModuleEntity;
+
+import lombok.NonNull;
 
 /**
  * @author Agung Dodi Perdana
@@ -18,7 +20,7 @@ public interface ModuleMapper {
     
 	ModuleMapper INSTANCE = Mappers.getMapper(ModuleMapper.class);
 	
-    ModuleData toData(@NonNull Module module);
+    ModuleData toData(@NonNull R2DBCModuleEntity module);
     
-    List<ModuleData> toDatas(@NonNull List<Module> modules);
+    List<ModuleData> toDatas(@NonNull List<R2DBCModuleEntity> modules);
 }

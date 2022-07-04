@@ -11,20 +11,25 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 import static org.springframework.web.reactive.function.server.RequestPredicates.PUT;
 import static org.springframework.web.reactive.function.server.RequestPredicates.DELETE;
 
+/**
+ * @author Agung Dodi Perdana
+ * @email agung.dodi.perdana@gmail.com
+ * @since 2.0
+ */
 @Configuration
 public class ModuleRouterConfiguration {
 
     @Bean
-    public RouterFunction<ServerResponse> getAllModules(ModuleHandler moduleHandler) {
+    public RouterFunction<ServerResponse> getAllModules(ModuleHandler handler) {
 
         return RouterFunctions
-                .route(GET("/api/v2/access-module/all"), moduleHandler::getAll)
-                .andRoute(GET("/api/v2/access-module/all-paged/{offset}/{limit}"), moduleHandler::getAllPaged)
-                .andRoute(GET("/api/v2/access-module/all-filtered/{key}"), moduleHandler::filterAll)
-                .andRoute(GET("/api/v2/access-module/all-filtered-paged/{key}/{offset}/{limit}"), moduleHandler::filter)
-                .andRoute(GET("/api/v2/access-module/code/{code}"), moduleHandler::getByCode)
-                .andRoute(POST("/api/v2/access-module/create"), moduleHandler::create)
-                .andRoute(PUT("/api/v2/access-module/update"), moduleHandler::update)
-                .andRoute(DELETE("/api/v2/access-module/delete"), moduleHandler::delete);
+                .route(GET("/api/v2/access-module/all"), handler::getAll)
+                .andRoute(GET("/api/v2/access-module/all-paged/{offset}/{limit}"), handler::getAllPaged)
+                .andRoute(GET("/api/v2/access-module/filter/{key}"), handler::filter)
+                .andRoute(GET("/api/v2/access-module/filter-paged/{key}/{offset}/{limit}"), handler::filterPaged)
+                .andRoute(GET("/api/v2/access-module/code/{code}"), handler::getByCode)
+                .andRoute(POST("/api/v2/access-module/create"), handler::create)
+                .andRoute(PUT("/api/v2/access-module/update"), handler::update)
+                .andRoute(DELETE("/api/v2/access-module/delete"), handler::delete);
     }
 }

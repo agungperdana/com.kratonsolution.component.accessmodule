@@ -1,16 +1,21 @@
 package com.kratonsolution.belian.access.module.impl.application;
 
-import com.google.common.base.Strings;
+import com.kratonsolution.belian.access.module.impl.domain.AccessModule;
+import com.kratonsolution.belian.access.module.impl.entity.R2DBCModuleEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.kratonsolution.belian.access.module.api.ModuleData;
-import com.kratonsolution.belian.access.module.api.application.*;
-import com.kratonsolution.belian.access.module.impl.model.Module;
+import com.kratonsolution.belian.access.module.api.application.ModuleCreateCommand;
+import com.kratonsolution.belian.access.module.api.application.ModuleDeleteCommand;
+import com.kratonsolution.belian.access.module.api.application.ModuleService;
+import com.kratonsolution.belian.access.module.api.application.ModuleUpdateCommand;
 import com.kratonsolution.belian.access.module.impl.repository.ModuleRepository;
+
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -23,95 +28,74 @@ import java.util.UUID;
  */
 @Slf4j
 @Service
+@Transactional(rollbackFor = Exception.class)
 public class ModuleServiceImpl implements ModuleService {
     
     @Autowired
     private ModuleRepository repo;
+    
+    @Autowired
+    private ApplicationEventPublisher publisher;
 
-    @Transactional(propagation = Propagation.REQUIRED)
-    public Mono<ModuleData> create(Mono<ModuleCreateCommand> monoCommand) {
+    public Mono<ModuleData> create(ModuleCreateCommand command) {
 
-        return monoCommand.flatMap(command -> {
+        R2DBCModuleEntity module = R2DBCModuleEntity.builder()
+                            .id(UUID.randomUUID().toString())
+                            .code(command.getCode())
+                            .name(command.getName())
+                            .group(command.getGroup())
+                            .note(command.getNote())
+                            .enabled(command.isEnabled())
+                            .build();
 
-            return repo.findOneByCode(command.getCode())
-                    .switchIfEmpty(Mono.just(new Module(command.getCode(), command.getName(), command.getModuleGroup(), command.getNote(), command.isEnabled())))
-                    .flatMap(module -> {
-
-                        if(Strings.isNullOrEmpty(module.getId())) {
-
-                            module.setId(UUID.randomUUID().toString());
-                            repo.save(module).subscribe();
-                            log.info("Creating new Module {}", module);
-
-                            return Mono.just(ModuleMapper.INSTANCE.toData(module));
-                        }
-                        else {
-                            return Mono.error(new RuntimeException("Module already exist!"));
-                        }
-                    });
-        });
-    }
-
-    @Transactional(propagation = Propagation.REQUIRED)
-    public Mono<ModuleData> update(Mono<ModuleUpdateCommand> monoCommand) {
-
-        return monoCommand.flatMap(command->{
-
-            return repo.findOneByCode(command.getCode())
-                    .switchIfEmpty(Mono.empty())
-                    .flatMap(module -> {
-
-                        module.setName(command.getName());
-                        module.setModuleGroup(command.getGroup());
-                        module.setEnabled(command.isEnabled());
-                        module.setNote(command.getNote());
-
-                        repo.save(module).subscribe();
-
-                        log.info("Updating module {}", module);
-
-                        return Mono.just(ModuleMapper.INSTANCE.toData(module));
-                    });
-            });
-    }
-
-    @Transactional(propagation = Propagation.REQUIRED)
-    public Mono<ModuleData> delete(Mono<ModuleDeleteCommand> command) {
-
-        return command.flatMap(c->{
-
-            return repo.findOneByCode(c.getCode()).flatMap(m->{
-
-                repo.delete(m).subscribe();
-                return Mono.just(ModuleMapper.INSTANCE.toData(m));
-            });
-        });
+        repo.save(module).subscribe();
+        return Mono.just(ModuleMapper.INSTANCE.toData(module));
     }
     
-    public Mono<ModuleData> getByCode(Mono<String> code) {
+    @Override
+    public Mono<ModuleData> update(ModuleUpdateCommand command) {
 
-        return code.flatMap(c->repo.getOne(c));
+        return repo.findOneByCode(command.getCode())
+                .map(entity -> {
+
+                    AccessModule.withEntity(entity)
+                                .changeNote(command.getNote())
+                                .changeActiveStatus(command.isEnabled());
+
+                    repo.save(entity);
+
+                    return ModuleMapper.INSTANCE.toData(entity);
+                });
+    }
+    
+    public Mono<ModuleData> delete(ModuleDeleteCommand command) {
+
+        return repo.findOneByCode(command.getCode())
+                .map(module -> {
+
+                    repo.delete(module);
+                    return ModuleMapper.INSTANCE.toData(module);
+                });
+    }
+
+    public Mono<ModuleData> getById(@NonNull String id) {
+
+        return repo.findById(id).map(mod -> ModuleMapper.INSTANCE.toData(mod));
+    }
+
+    public Mono<ModuleData> getByCode(@NonNull String code) {
+
+        return repo.findOneByCode(code).map(module -> ModuleMapper.INSTANCE.toData(module));
     }
     
     public Flux<ModuleData> getAll() {
 
-        return repo.loadAllModule();
+        return repo.getAll();
     }
 
     public Flux<ModuleData> getAll(int offset, int limit) {
 
-        return repo.loadAllModule(limit, offset);
-    }
-
-	@Override
-	public Flux<ModuleData> getAll(@NonNull String key) {
-
-        return repo.loadAllModule(key);
-	}
-
-    @Override
-    public Flux<ModuleData> getAll(@NonNull Mono<ModuleFilter> filter) {
-        return filter.flatMapMany(f -> repo.loadAllModule(f.getKey(), f.getOffset(), f.getLimit()));
+        return repo.getAll(offset, limit);
     }
 
     public Mono<Long> count() {
@@ -119,8 +103,18 @@ public class ModuleServiceImpl implements ModuleService {
         return repo.count();
     }
 
-    public Mono<Long> count(@NonNull Mono<String> key) {
+    public Mono<Long> count(@NonNull String filterKey) {
 
-        return key.flatMap(k -> repo.count(k));
+        return repo.count(filterKey);
+    }
+
+	@Override
+	public Flux<ModuleData> filter(@NonNull String filterKey) {
+        return repo.filter(filterKey);
+	}
+
+    public Flux<ModuleData> filter(@NonNull String key, int offset, int limit) {
+
+        return repo.filter(key, offset, limit);
     }
 }
